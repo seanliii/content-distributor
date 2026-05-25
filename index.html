@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦐 虾团内容分发器 | OpenClaw 多平台发布工具</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #e8e8e8;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 20px 40px;
+    border-bottom: 1px solid #1e3a5f;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header .badge {
+    background: #00d4ff22;
+    border: 1px solid #00d4ff44;
+    color: #00d4ff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+  .card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 16px; color: #9ca3af; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+  label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 6px; margin-top: 14px; }
+  input, textarea, select {
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #e8e8e8;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #00d4ff;
+  }
+  textarea { resize: vertical; min-height: 120px; }
+  .platforms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .platform-toggle {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .platform-toggle:hover { border-color: #00d4ff44; }
+  .platform-toggle.active {
+    border-color: #00d4ff;
+    background: #00d4ff11;
+  }
+  .platform-toggle input { width: auto; margin: 0; }
+  .platform-name { font-size: 14px; font-weight: 500; }
+  .platform-desc { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .btn-primary {
+    background: linear-gradient(135deg, #00d4ff, #0066ff);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 20px;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .log-area {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Menlo', monospace;
+    font-size: 12px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  .log-success { color: #34d399; }
+  .log-error { color: #f87171; }
+  .log-info { color: #60a5fa; }
+  .log-warn { color: #fbbf24; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .stat-card {
+    background: #0d1117;
+    border: 1px solid #1f2937;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value { font-size: 28px; font-weight: 700; color: #00d4ff; }
+  .stat-label { font-size: 12px; color: #6b7280; margin-top: 4px; }
+  .tag-input { margin-top: 6px; }
+  .tags-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    min-height: 28px;
+  }
+  .tag {
+    background: #1e3a5f;
+    color: #60a5fa;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+  }
+  .preview-section {
+    border-top: 1px solid #1f2937;
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+  .preview-box {
+    background: #0d1117;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #9ca3af;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span style="font-size: 28px;">🦐</span>
+  <div>
+    <h1>虾团内容分发器</h1>
+    <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">OpenClaw × 觅游社区 · 一键多平台发布</div>
+  </div>
+  <div class="badge">由小蓝虾构建</div>
+</div>
+
+<div class="container">
+
+  <!-- 统计卡片 -->
+  <div class="card">
+    <h2>📊 今日发布统计</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">今日发布</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-success" style="color: #34d399;">0</div>
+        <div class="stat-label">成功</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-fail" style="color: #f87171;">0</div>
+        <div class="stat-label">失败</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容输入 -->
+  <div class="card">
+    <h2>✍️ 内容编辑</h2>
+    <div>
+      <label>标题 *</label>
+      <input type="text" id="post-title" placeholder="写一个让人想点进来的标题..." maxlength="100">
+    </div>
+    <div>
+      <label>正文内容 *</label>
+      <textarea id="post-content" placeholder="分享你的发现、实战经验、或者干货教程...&#10;&#10;支持换行，建议300字以上效果更好。" rows="8"></textarea>
+    </div>
+    <div>
+      <label>标签（用逗号分隔）</label>
+      <input type="text" id="post-tags" placeholder="干活虾, OpenClaw, 自动化" value="干活虾, OpenClaw">
+      <div class="tags-preview" id="tags-preview"></div>
+    </div>
+    <div class="preview-section">
+      <div style="font-size: 13px; color: #9ca3af; margin-bottom: 8px;">📋 发布预览</div>
+      <div class="preview-box" id="preview-box">填写标题和内容后，这里将显示预览...</div>
+    </div>
+  </div>
+
+  <!-- 目标平台 -->
+  <div class="card">
+    <h2>🎯 目标平台</h2>
+    <div class="platforms">
+      <label class="platform-toggle active" onclick="togglePlatform(this, 'meyo')">
+        <input type="checkbox" id="platform-meyo" checked style="display:none">
+        <span style="font-size: 20px;">🌊</span>
+        <div>
+          <div class="platform-name">觅游社区</div>
+          <div class="platform-desc">meyo123.com 公开帖</div>
+        </div>
+      </label>
+      <label class="platform-toggle" onclick="togglePlatform(this, 'log')">
+        <input type="checkbox" id="platform-log" style="display:none">
+        <span style="font-size: 20px;">📝</span>
+        <div>
+          <div class="platform-name">本地日志</div>
+          <div class="platform-desc">保存到本地文件</div>
+        </div>
+      </label>
+    </div>
+    <div style="margin-top: 16px; padding: 12px; background: #0d1117; border-radius: 8px; font-size: 12px; color: #6b7280;">
+      💡 更多平台（微信公众号、小红书、Twitter）正在接入，敬请期待
+    </div>
+  </div>
+
+  <!-- 发布按钮 -->
+  <button class="btn-primary" id="publish-btn" onclick="publish()">
+    🚀 一键发布到已选平台
+  </button>
+
+  <!-- 执行日志 -->
+  <div class="card" style="margin-top: 20px;">
+    <h2>📋 执行日志</h2>
+    <div class="log-area" id="log-area">等待发布指令...\n</div>
+  </div>
+
+</div>
+
+<script>
+let stats = { total: 0, success: 0, fail: 0 };
+
+function togglePlatform(label, id) {
+  label.classList.toggle('active');
+  const cb = label.querySelector('input[type=checkbox]');
+  cb.checked = !cb.checked;
+}
+
+// 实时预览
+document.getElementById('post-title').addEventListener('input', updatePreview);
+document.getElementById('post-content').addEventListener('input', updatePreview);
+document.getElementById('post-tags').addEventListener('input', () => { updateTags(); updatePreview(); });
+
+function updateTags() {
+  const raw = document.getElementById('post-tags').value;
+  const tags = raw.split(',').map(t => t.trim()).filter(Boolean);
+  const preview = document.getElementById('tags-preview');
+  preview.innerHTML = tags.map(t => `<span class="tag">#${t}</span>`).join('');
+}
+
+function updatePreview() {
+  const title = document.getElementById('post-title').value;
+  const content = document.getElementById('post-content').value;
+  const box = document.getElementById('preview-box');
+  if (!title && !content) {
+    box.textContent = '填写标题和内容后，这里将显示预览...';
+    return;
+  }
+  box.textContent = `【${title || '（未填写标题）'}】\n\n${content || '（未填写内容）'}`;
+}
+
+function log(msg, type = 'info') {
+  const area = document.getElementById('log-area');
+  const time = new Date().toLocaleTimeString('zh-CN');
+  const classes = { info: 'log-info', success: 'log-success', error: 'log-error', warn: 'log-warn' };
+  area.innerHTML += `<span class="${classes[type] || ''}">[${time}] ${msg}</span>\n`;
+  area.scrollTop = area.scrollHeight;
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = stats.total;
+  document.getElementById('stat-success').textContent = stats.success;
+  document.getElementById('stat-fail').textContent = stats.fail;
+}
+
+async function publishToMeyo(title, content, tags) {
+  log('📡 正在发布到觅游社区...', 'info');
+  
+  // 调用觅游 API（通过 CORS proxy 或直接）
+  const payload = {
+    title: title,
+    content: content,
+    tags: tags
+  };
+
+  // 尝试直接调用（如果在同域或有 CORS 支持）
+  try {
+    // 使用 allOrigins 作为 CORS proxy
+    const apiUrl = 'https://www.meyo123.com/api/v1/feeds';
+    const token = 'sk_meyo_a1b5a3d9ea96c235bb5a2c605cc0bdbb';
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Catclaw-Request': 'true',
+        'X-Request-Source': 'CatClaw'
+      },
+      body: JSON.stringify(payload),
+      mode: 'cors'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      log(`✅ 觅游发布成功！帖子 ID: ${data.id || data.data?.id || '已创建'}`, 'success');
+      return { success: true, platform: 'meyo', data };
+    } else {
+      const errText = await response.text();
+      log(`⚠️ 觅游 API 响应异常: ${response.status} - ${errText.slice(0, 100)}`, 'warn');
+      // CORS 限制时降级到提示
+      log('💡 提示：浏览器 CORS 限制，已记录内容，可手动发布或通过小蓝虾 CLI 执行', 'warn');
+      return { success: false, platform: 'meyo', reason: 'cors' };
+    }
+  } catch (e) {
+    log(`⚠️ 觅游直连受限（CORS）: ${e.message}`, 'warn');
+    log('💡 内容已准备好，请通过小蓝虾 CLI 发布: 告诉小蓝虾"帮我发这篇到觅游"', 'warn');
+    return { success: false, platform: 'meyo', reason: 'cors', content: payload };
+  }
+}
+
+async function publish() {
+  const title = document.getElementById('post-title').value.trim();
+  const content = document.getElementById('post-content').value.trim();
+  const tagsRaw = document.getElementById('post-tags').value;
+  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+
+  if (!title) { log('❌ 标题不能为空', 'error'); return; }
+  if (!content) { log('❌ 内容不能为空', 'error'); return; }
+  if (content.length < 10) { log('❌ 内容太短，至少10个字', 'error'); return; }
+
+  const btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 发布中...';
+
+  const platforms = [];
+  if (document.getElementById('platform-meyo').checked) platforms.push('meyo');
+  if (document.getElementById('platform-log').checked) platforms.push('log');
+
+  if (platforms.length === 0) {
+    log('❌ 请至少选择一个发布平台', 'error');
+    btn.disabled = false;
+    btn.textContent = '🚀 一键发布到已选平台';
+    return;
+  }
+
+  log(`\n🦐 开始发布任务 | 标题: ${title.slice(0, 30)}... | 平台: ${platforms.join(', ')}`, 'info');
+  log(`📊 内容字数: ${content.length} | 标签数: ${tags.length}`, 'info');
+
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const platform of platforms) {
+    stats.total++;
+    if (platform === 'meyo') {
+      const result = await publishToMeyo(title, content, tags);
+      if (result.success) { successCount++; stats.success++; }
+      else { failCount++; stats.fail++; }
+    } else if (platform === 'log') {
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        title, content, tags
+      };
+      const existing = JSON.parse(localStorage.getItem('distributor_log') || '[]');
+      existing.push(logEntry);
+      localStorage.setItem('distributor_log', JSON.stringify(existing));
+      log(`📝 已保存到本地日志（共 ${existing.length} 条）`, 'success');
+      successCount++; stats.success++;
+    }
+  }
+
+  updateStats();
+
+  if (successCount > 0) {
+    log(`\n✨ 发布完成！成功 ${successCount} 个平台`, 'success');
+  }
+  if (failCount > 0) {
+    log(`⚠️ ${failCount} 个平台发布受限（见上方说明）`, 'warn');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🚀 一键发布到已选平台';
+}
+
+// 初始化
+updateTags();
+log('🦐 小蓝虾内容分发器已就绪', 'success');
+log('📝 支持平台: 觅游社区 meyo123.com', 'info');
+log('⚡ 由 OpenClaw 构建 · seanliii.github.io', 'info');
+</script>
+</body>
+</html>
