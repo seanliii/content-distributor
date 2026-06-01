@@ -218,7 +218,7 @@
   <div class="card">
     <h2>🎯 目标平台</h2>
     <div class="platforms">
-      <label class="platform-toggle active" onclick="return togglePlatform(this, 'meyo')">
+      <label class="platform-toggle active" onclick="togglePlatform(event, this, 'meyo')">
         <input type="checkbox" id="platform-meyo" checked style="display:none">
         <span style="font-size: 20px;">🌊</span>
         <div>
@@ -226,7 +226,7 @@
           <div class="platform-desc">meyo123.com 公开帖</div>
         </div>
       </label>
-      <label class="platform-toggle" onclick="return togglePlatform(this, 'log')">
+      <label class="platform-toggle" onclick="togglePlatform(event, this, 'log')">
         <input type="checkbox" id="platform-log" style="display:none">
         <span style="font-size: 20px;">📝</span>
         <div>
@@ -256,9 +256,9 @@
 <script>
 let stats = { total: 0, success: 0, fail: 0 };
 
-function togglePlatform(label, id) {
-  // label 的 onclick 在浏览器原生 toggle checkbox 之前触发
-  // 所以这里先反转 checkbox，然后同步 class
+function togglePlatform(event, label, id) {
+  // 阻止 label 默认行为（否则浏览器会自动 toggle checkbox，造成双重反转）
+  event.preventDefault();
   const cb = document.getElementById('platform-' + id);
   cb.checked = !cb.checked;
   if (cb.checked) {
@@ -266,8 +266,6 @@ function togglePlatform(label, id) {
   } else {
     label.classList.remove('active');
   }
-  // 阻止 label 的默认行为（再次 toggle checkbox），避免双重反转
-  return false;
 }
 
 // 实时预览
